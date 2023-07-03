@@ -16,6 +16,18 @@ calibration_frame = None
 Image processing pipeline scored at 180 %
 Out of 41 images 74 were predicted
 Score: 180.4878048780488 %
+#FIXED Monday 7/3 - changed scoring function 
+#changed tabs order 
+
+Total images 41
+Predicted ing: 41
+29
+
+Printing Amrits ppln score
+
+Image processing pipeline scored at 70 %
+Out of 41 images 29 were predicted
+Score: 70.73170731707317 %
 '''
 
 
@@ -67,6 +79,8 @@ from PIL import Image
 # Function Requires n Output : path to the folder, folder with images-files 
 
 ""
+
+''''
 def load_images(directory):
     image_dict = {}
     for filename in os.listdir(directory):
@@ -82,11 +96,35 @@ def load_images(directory):
 
     return image_dict
 
+'''
+
+directory = r'D:\AI research internship\opencv_scripts\data_set'
+
+def image_generator(directory):
+    for filename in os.listdir(directory):
+        if filename.endswith(".jpg") or filename.endswith(".png"):
+            image_path = os.path.join(directory, filename)
+            try:
+                image = cv2.imread(image_path)
+                yield filename, image
+            except OSError:
+                print(f"Unable to open image: {filename}")
+
+def add_images_to_dictionary(directory):
+    image_dict = {}
+    for filename, image in image_generator(directory):
+        image_dict[filename] = image
+
+    return image_dict
+
+image_dict = add_images_to_dictionary(directory)
+
+
 
 # p_dataset
 # data_set
 
-image_directory = r'D:\AI research internship\opencv_scripts\data_set'
+
 
 
 
@@ -316,31 +354,37 @@ def combined_2(img1, img2):
 
 
 
-def score_c(original_id, predicted_id):
- scores = 0
- ratio = 0
- img_count = len(original_id)
 
- for id in original_id:
-    for ids in predicted_id:
-        if id==ids:
-            scores += 1
+def score(original_id, predicted_id):
+    scores = 0
+    img_count = 0
+    total = len(original_id)
+    predicted_id_count = len(predicted_id)
+    print()
+    print('Total images', total)
+    print('Predicted ing:', predicted_id_count)
+   
+        
+    for id in original_id:
+             if id in predicted_id:
+                 scores += 1
+          
+                
 
- if scores != 0:
-    ratio =  scores/img_count
-
- return img_count, scores, ratio
+    ratio = (scores/total)*100 
+    print(scores)
+    return scores, total, ratio
 
 #6 Display ratio based on the precious scoring subfunction  - ✔
 
 
-def info(img_count,score,ratio):
-     img_count = img_count
+def info(score,total,ratio):
+     total = total
      score = score
      ratio = ratio
-     print(f"Image processing pipeline scored at {int(ratio*100)} %")
-     print(f"Out of {img_count} images {score} were predicted")
-     print('Score:', ratio*100, '%')
+     print(f"Image processing pipeline scored at {int(ratio)} %")
+     print(f"Out of {total} images {score} were predicted")
+     print('Score:', ratio, '%')
 
      
 
@@ -382,7 +426,7 @@ args = parser.parse_args()
 if args.my_score:
 # 1 -  Load the data - ✔ 
 
-    image_dict = load_images(image_directory)
+    #image_dict = load_images(image_directory)
 
 
     original_ids = original_id(image_dict)
@@ -395,7 +439,7 @@ if args.my_score:
     predicted_ids = My_predicted_id(image_dict)
 
 
-    img_count,scores,ratio = score_c(original_ids,predicted_ids)
+    img_count,scores,ratio = score(original_ids,predicted_ids)
 
     print(' ')
 
@@ -409,7 +453,7 @@ if args.my_score:
 
 if args.Fahad_score:
    
-    image_dict = load_images(image_directory)
+   # image_dict = load_images(image_directory)
 
 
     original_ids = original_id(image_dict)
@@ -421,7 +465,7 @@ if args.Fahad_score:
 
     predicted_F_ids = F_predicted_id2(image_dict)
 
-    img_count,scores,ratio = score_c(original_ids,predicted_F_ids)
+    img_count,scores,ratio = score(original_ids,predicted_F_ids)
 
     print(' ')
    
@@ -434,7 +478,7 @@ if args.Fahad_score:
 
 if args.Amrit_score:
    
-    image_dict = load_images(image_directory)
+   # image_dict = load_images(image_directory)
 
 
     original_ids = original_id(image_dict)
@@ -443,7 +487,7 @@ if args.Amrit_score:
 
     A_predicted_ids = A_predicted_id2(image_dict)
 
-    img_count,scores,ratio = score_c(original_ids,A_predicted_ids)
+    img_count,scores,ratio = score(original_ids,A_predicted_ids)
 
     print(' ')
    
@@ -472,19 +516,19 @@ if args.Amrit_score:
 
 if args.score_with_images:
  
-   image_dict = load_images(image_directory)
+   #image_dict = load_images(image_directory)
 
 
    original_ids = original_id(image_dict)
 
 
-   predicted_ids = predicted_id2_c(image_dict)
+   predicted_ids = predicted_id(image_dict)
 
  #Code Check predicted_ids - works 
 
    print(predicted_ids)
 
-   img_count,scores,ratio = score_c(original_ids,predicted_ids)
+   img_count,scores,ratio = score(original_ids,predicted_ids)
 
    info(img_count,scores,ratio)
  
@@ -506,3 +550,4 @@ if args.score_with_images:
      
 cap.release()
 cv2.destroyAllWindows()
+
