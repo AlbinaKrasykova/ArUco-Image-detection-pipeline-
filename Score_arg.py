@@ -32,33 +32,31 @@ Score: 70.73170731707317 %
 
 
 
-
-
-
-
-
-#from Fahads_ppln import Fdetection, Ftransformation  - for some rrn I got the img wth an id as well, so its imports everything I have 
-#from save_frame  import detect_F, process_frame_F 
+#from Fahads_ppln import Fdetection, Ftransformation  - for some rrn I got the img wth an id as well, so its imports everything I have ✔
+#from save_frame  import detect_F, process_frame_F ✔
 
 
 #GOAL 1: score function which scores ing pppln according to how well it perfomed  ✔
 
-#Result: does run, but doesn't detect images at all  ✔
+#Result: does run, but 't detect images BUT needs a confusion matrix, grid search and laod images in batches (as for 2K dataset) ? 
 
-#GOAL 2: takes both 2dprinted tags(test) and 3d printed tags and detects the id's correctl, scores it and return the ratio ✔
+#2: takes both 2dprinted tags(test) and 3d printed tags and detects the id's correctl, scores it and return the ratio ✔
 
-# NEEDS TO BE DONE 3 : check the datatype whch is return by the function, rewrite all the fucntion manually - Done - ✔
+#3 : check the datatype whch is return by the function, rewrite all the fucntion manually - Done - ✔
 
-# NEEDS TO BE DONE 4: check/score 2 pplns - Fahds (4.1) - ✔ & Amrit (4.2) - ✔
+#4: check/score 2 pplns - Fahds (4.1) - ✔ & Amrit (4.2) - ✔
 
-# NEEDS TO BE DONE 5 : Implement My, F, A pipelines as an option in the command line - ✔
+#5 : Implement My, F, A pipelines as an option in the command line - ✔
 
-# NEEDS TO BE DONE 6: Build a better datset, test pplns on it 
-# Running 
+#6: Build a better datset, test pplns on it 2500 ✔
 
-# NEEDS TO BE DONE 7: Confusion matrix implnt 
+#7: Dataset from different angles/calculating the distance - ✔
 
-# NEEDS TO BE DONE 7: Dataset from different angles/calculating the distance 
+#  image processing in batches, implement and rewrite functions 
+
+# NEEDS TO BE DONE 7: Confusion matrix implnt (precision and recall)
+
+
 
 
 #ERRORS: 
@@ -350,41 +348,61 @@ def combined_2(img1, img2):
  return combined_image
 
 
-#5 Scoring Function - ✔
+#5 Scoring Function - ✔ +precision and recall 
 
+def calc_p_r(original_ids, predicted_ids):
+    true_positive = 0
+    false_negative = 0
+    false_positive = 0
+
+    for i in range(len(original_ids)):
+        if original_ids[i] == predicted_ids[i]:
+            true_positive += 1
+        else:
+            false_negative += 1
+
+    false_negative = len(original_ids) - true_positive
+
+    precision = true_positive / (true_positive + false_positive)
+    recall = true_positive / (true_positive + false_negative)
+
+    return precision, recall
 
 
 
 def score(original_id, predicted_id):
     scores = 0
-    img_count = 0
     total = len(original_id)
     predicted_id_count = len(predicted_id)
     print()
     print('Total images', total)
     print('Predicted ing:', predicted_id_count)
    
-        
+    
     for id in original_id:
              if id in predicted_id:
                  scores += 1
           
                 
-
+    precision, recall = calc_p_r(original_id, predicted_id)
     ratio = (scores/total)*100 
     print(scores)
-    return scores, total, ratio
+    return scores, total, ratio, precision, recall
 
 #6 Display ratio based on the precious scoring subfunction  - ✔
 
 
-def info(score,total,ratio):
+def info(score,total,ratio,precision, recall):
      total = total
      score = score
      ratio = ratio
+     precision=precision
+     recall = recall
      print(f"Image processing pipeline scored at {int(ratio)} %")
      print(f"Out of {total} images {score} were predicted")
      print('Score:', ratio, '%')
+     print('precision:', precision, '%')
+     print('recall:', recall, '%')
 
      
 
@@ -487,7 +505,7 @@ if args.Amrit_score:
 
     A_predicted_ids = A_predicted_id2(image_dict)
 
-    img_count,scores,ratio = score(original_ids,A_predicted_ids)
+    img_count,scores,ratio,precision, recall = score(original_ids,A_predicted_ids)
 
     print(' ')
    
@@ -495,7 +513,7 @@ if args.Amrit_score:
    
     print(' ')
 
-    info(img_count,scores,ratio)
+    info(img_count,scores,ratio,precision, recall)
 
 
 
