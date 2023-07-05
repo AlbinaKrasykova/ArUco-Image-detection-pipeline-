@@ -4,6 +4,7 @@ import cv2
 from PIL import Image
 import numpy as np
 from shadow_highlight_correction import correction
+import math
 
 calibration_frame = None
 
@@ -96,7 +97,9 @@ def load_images(directory):
 
 '''
 
-directory = r'D:\AI research internship\opencv_scripts\data_set'
+directory = r'D:\AI research internship\opencv_scripts\n_updwn_angl'
+
+""""
 
 def image_generator(directory):
     for filename in os.listdir(directory):
@@ -116,6 +119,35 @@ def add_images_to_dictionary(directory):
     return image_dict
 
 image_dict = add_images_to_dictionary(directory)
+
+"""
+
+#1 Loads images in batches 
+
+def load_images_in_batches(directory, batch_size, batch_index=0):
+    
+    image_files = os.listdir(directory)
+    total_images = len(image_files)
+    num_batches = math.ceil(total_images / batch_size)
+
+    for i in range(num_batches):
+        batch_index +=1
+        start_index = i * batch_size
+        end_index = min(start_index + batch_size, total_images)
+        batch_files = image_files[start_index:end_index]
+        
+        batch_images = {}
+        for file in batch_files:
+            
+            image_path = os.path.join(directory, file)
+            image = cv2.imread(image_path)
+            image_name = os.path.splitext(file)[0]  # Extract name without extension
+            batch_images[image_name] = image
+        print()
+        print('Batch numebr: ', batch_index)
+        print()
+        
+        yield batch_images
 
 
 
@@ -286,12 +318,6 @@ def A_detect(image, draw_rejected = False):
 
     return ids_hflip
 
-''''
-def predict(image_dict, pipeline):
-    for ids, img in image_dict:
-        predicted = pipeline(img)
-        # comparison ... 
-'''
 
 def A_predicted_id2(image_dict):
     p_id_arr = []
@@ -375,18 +401,23 @@ def score(original_id, predicted_id):
     total = len(original_id)
     predicted_id_count = len(predicted_id)
     print()
-    print('Total images', total)
-    print('Predicted ing:', predicted_id_count)
-   
-    
+    print('Total images:', total)
+    print('Predicted images:', predicted_id_count)
+
     for id in original_id:
-             if id in predicted_id:
-                 scores += 1
-          
-                
+        if isinstance(
+            
+            
+            
+            
+            
+            
+            id, int) and id in predicted_id:
+            scores += 1
+
     precision, recall = calc_p_r(original_id, predicted_id)
-    ratio = (scores/total)*100 
-    print(scores)
+    ratio = (scores / total) * 100
+    print('Scores:', scores)
     return scores, total, ratio, precision, recall
 
 #6 Display ratio based on the precious scoring subfunction  - ✔
@@ -442,30 +473,47 @@ args = parser.parse_args()
 
 
 if args.my_score:
+
+
+    batch_size = 150
+    directory = r'D:\AI research internship\opencv_scripts\n_updwn_angl'
+
+
+    print('My ppln score: ')   
+    print('')
+    for batch in load_images_in_batches(directory, batch_size):
+        original_ids = original_id(batch)
+        predicted_ids = My_predicted_id(batch)
+        img_count, scores, ratio,precision, recall = score(original_ids, predicted_ids)
+        info(img_count, scores, ratio,precision, recall)
+       
+        # Perform further processing on the image or store it as needed
+    print("Batch complete")
+
 # 1 -  Load the data - ✔ 
 
     #image_dict = load_images(image_directory)
 
 
-    original_ids = original_id(image_dict)
+ #   original_ids = original_id(image_dict)
 
 # note: MY ppln  Uncomment once switxh to my ppln, and comment F_ppln 
 #predicted_ids = predicted_id2_c(image_dict)
 
 #F_ppln - ✔
 
-    predicted_ids = My_predicted_id(image_dict)
+ #   predicted_ids = My_predicted_id(image_dict)
 
 
-    img_count,scores,ratio = score(original_ids,predicted_ids)
+#    img_count,scores,ratio = score(original_ids,predicted_ids)
 
-    print(' ')
+#    print(' ')
 
-    print('Printing My ppln score') 
+#    print('Printing My ppln score') 
 
-    print(' ')
+#   print(' ')
 
-    info(img_count,scores,ratio)
+#    info(img_count,scores,ratio)
 
 
 
@@ -473,47 +521,68 @@ if args.Fahad_score:
    
    # image_dict = load_images(image_directory)
 
-
-    original_ids = original_id(image_dict)
+    #Check 41 img dataset 
+   #  directory = r'D:\AI research internship\opencv_scripts\data_set'
+    directory = r'D:\AI research internship\opencv_scripts\data_set'
+    print('Fahd ppln score: ')   
+    print('')
+    #original_ids = original_id(image_dict)
 
 # note: MY ppln  Uncomment once switxh to my ppln, and comment F_ppln 
 #predicted_ids = predicted_id2_c(image_dict)
 
 #F_ppln - ✔
-
-    predicted_F_ids = F_predicted_id2(image_dict)
-
-    img_count,scores,ratio = score(original_ids,predicted_F_ids)
-
-    print(' ')
-   
-    print('Printing Fahds ppln score')
-   
-    print(' ')
-
-    info(img_count,scores,ratio)
+    for batch in load_images_in_batches(directory, batch_size):
+        original_ids = original_id(batch)
+        predicted_ids = F_predicted_id2(batch)
+        img_count, scores, ratio,precision, recall = score(original_ids, predicted_ids)
+        info(img_count, scores, ratio,precision, recall)
    
 
 if args.Amrit_score:
    
    # image_dict = load_images(image_directory)
-
-
-    original_ids = original_id(image_dict)
-
-   #A_ppln - 
-
-    A_predicted_ids = A_predicted_id2(image_dict)
-
-    img_count,scores,ratio,precision, recall = score(original_ids,A_predicted_ids)
-
-    print(' ')
    
-    print('Printing Amrits ppln score')
-   
-    print(' ')
+    print('Amrit ppln score: ')  
+    print('')
 
-    info(img_count,scores,ratio,precision, recall)
+    batch_size = 150
+
+   # Check 41 img dataset 
+    directory = r'D:\AI research internship\opencv_scripts\data_set'
+
+    def A_predicted_id(image_dict):
+        p_id_arr = []
+        for ids, img in image_dict.items():
+            img_corrected = correction(img, 0, 0, 0, 0.6, 0.6, 30, .3)
+            img_gray = cv2.cvtColor(img_corrected, cv2.COLOR_BGR2GRAY)
+            if calibration_frame is not None:
+                img_norm = img_gray - calibration_frame
+            else:
+                img_norm = img_gray
+
+            img_contrast_enhanced = contrast(img_norm, clahe)
+            img_blurred = blur(img_contrast_enhanced, (5, 5))
+            img_thresholded = threshold(img_blurred, THRESHOLD_PX_VAL)
+            flipped = cv2.flip(img_thresholded, 1)
+            ids = A_detect(flipped)
+            p_id_arr.append(ids)
+        print('Amrits array with predicted id is: ', p_id_arr)
+        print(len(p_id_arr))
+        return p_id_arr
+
+    for batch in load_images_in_batches(directory, batch_size):
+        original_ids = original_id(batch)
+        print(original_ids)
+        predicted_ids = A_predicted_id(batch)
+       
+        new_arr_predicted_ids = [int(x[0, 0]) if x is not None else None for x in predicted_ids]
+        print(new_arr_predicted_ids)
+        img_count, scores, ratio,precision, recall = score(new_arr_predicted_ids,original_ids)
+        info(img_count, scores, ratio,precision, recall)
+       
+        # Perform further processing on the image or store it as needed
+    print("Batch complete")
 
 
 
@@ -568,4 +637,50 @@ if args.score_with_images:
      
 cap.release()
 cv2.destroyAllWindows()
+
+
+
+def score(original_id, predicted_id):
+    scores = 0
+    total = len(original_id)
+    predicted_id_count = len(predicted_id)
+    print()
+    print('Total images:', total)
+    print('Predicted images:', predicted_id_count)
+
+    for id in original_id:
+        if isinstance( id, int) and id in predicted_id:
+            scores += 1
+
+    precision, recall = calc_p_r(original_id, predicted_id)
+    ratio = (scores / total) * 100
+    print('Scores:', scores)
+    return scores, total, ratio, precision, recall
+
+original = [1, 1, 1,
+        1, 22, 22, 22, 22, 22]
+
+
+pred = [1, 1, None, 1, 22, 22, None, None, 22]
+
+scores, total, ratio, precision, recall = score(pred, original)
+print(info(scores, total, ratio, precision, recall))
+
+# Testing the scoring fucntion  
+
+
+#A1 = [1,2,3,44,22,33]
+#A2 = [1,None, 3, None, None,33]
+
+
+
+
+#Test worked, converted array of array to an int, flipped orig, to predict. 
+
+
+
+#AA = A_predicted_id2(image_dict)
+
+
+
 
