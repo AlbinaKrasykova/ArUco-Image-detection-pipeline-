@@ -655,7 +655,6 @@ def score(original_id, predicted_id):
 
 
 
-directory = r'D:\AI research internship\opencv_scripts\2_id'
 
 
 def load_images(directory):
@@ -674,50 +673,489 @@ def load_images(directory):
 
 
 
-
-#TEST
-
-s1 = [{40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23},
-        {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, 
-        {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23},
-          {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, 
-          {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, 
-          {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, 
-          {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, 
-          {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, 
-          {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, 
-       {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}, {40, 23}]
-
-s2 = [set(), {40}, {40}, set(), {40}, {40}, set(), set(), set(), set(), set(), set(), set
-      (), set(), set(), set(), set(), set(), set(), set(), set(), set(), set(), set(), set(), 
-      set(), set(), set(), set(), set(), set(), set(), set(), set(), set(), set(), set(), set(), 
-      set(), set(), set(), set(), set(), set(), set(), set(), set(), set(), set(), set(), set(), 
-      set(), set(), set(), set(), set(), set(), set(), set(), set(), set(), set(), set(), 
-      set(), set(), set(), set(), set(), set(), set(), set(), set(), set(), set(), 
-      set(), set(), set(), set(), set(), set(), set(), set(), set(), 
-      set(), set(), set(), set(), set(), set(), set(), set()]
+directory = r'D:\AI research internship\opencv_scripts\data_set'
 
 
 
 
-score = 0   
-print(len(s1), len(s2))
-for set1, set2 in zip(s1, s2):
-        if not set2:
-            continue
-        
+import re 
 
-        for id1 in set1:
-            if id1 in set2:
-                
-                score+=1
-            
-            
 
- 
-#
 
-print('Test Score is: ', score)
+
+#cleans a string, count ids, ignores the last digit(angle)
+import re
+
+def clean_string(string):
+    digits = re.findall(r'\d+', string)
+    if len(digits) > 1:
+        digits = digits[:-1]  # Ignore the last group of digits
+    cleaned_string = '_'.join(digits)
+    count = len(digits)
+    print('String is', cleaned_string)
+    print('Count of ids is', count)
+    return count, cleaned_string
+
+
+
+s1 = '3id_5'
+s2 = '1_id_up_dwn_angl_140'
+s3 = '20_30_40'
+clean_string(s1)
+
+
+
+def load_images(directory):
+    image_dict = {}
+    for filename in os.listdir(directory):
+        if filename.endswith(".jpg") or filename.endswith(".png"):
+            image_path = os.path.join(directory, filename)
+            try:
+                image = cv2.imread(image_path)
+                image_dict[filename] = image
+            except OSError:
+                print(f"Unable to open image: {filename}")
+
+    return image_dict
+
+
+img_dict = load_images(directory) 
+
+def clean_string(string):
+    digits = re.findall(r'\d+', string)
+    if len(digits) > 1:
+        digits = digits[:-1]  # Ignore the last group of digits
+    cleaned_string = '_'.join(digits)
+    count = len(digits)
+    #print('String is', cleaned_string)
+    #print('Count of ids is', count)
+    return count, cleaned_string
+
+
+
+#doesnt work 
+def original_id_2_1(image_dict):
+    arr = []
+    
+    # Create the pattern based on the ID count
+    pattern = r'^(\d{1,2})'
+    
+
+    for key in image_dict.keys():
+        count, key = clean_string(key)
+        print('Count of ids is ', count,' the key is  ', key)
+        for _ in range(1, count):
+         pattern += r'_(\d{1,2})'
+
+        digit_set = set()
+        match = re.match(pattern, key)
+        if match:
+            for group in match.groups():
+                digit_set.add(int(group))
+            arr.append(digit_set)
+        else:
+            print(f"Key '{key}' does not match the pattern.")
+    
+    print(arr)
+    return arr
+
+    
+import re
+
+def original_id_2(image_dict):
+    arr = []
+
+    for key in image_dict.keys():
+        count, key = clean_string(key)
+        #print('Count of ids is', count, 'the key is', key)
+        pattern = r'^(\d{1,2})'  # Create the pattern based on the ID count
+
+        for _ in range(1, count):
+            pattern += r'_(\d{1,2})'
+
+        digit_set = set()
+        match = re.match(pattern, key)
+        if match:
+            for group in match.groups():
+                digit_set.add(int(group))
+            arr.append(digit_set)
+        else:
+            print(f"Key '{key}' does not match the pattern.")
+
+    print(arr)
+    return arr
+
+
+
+arr = original_id_2(img_dict)
+print(arr)
+
+
+    
+
+def A_ppln_2(image_dict):
+        arr = []
+        p_id_set = set()
+        for ids, img in image_dict.items():
+            img_corrected = correction(img, 0, 0, 0, 0.6, 0.6, 30, .3)
+            img_gray = cv2.cvtColor(img_corrected, cv2.COLOR_BGR2GRAY)
+            if calibration_frame is not None:
+                img_norm = img_gray - calibration_frame
+            else:
+                img_norm = img_gray
+
+            img_contrast_enhanced = contrast(img_norm, clahe)
+            img_blurred = blur(img_contrast_enhanced, (5, 5))
+            img_thresholded = threshold(img_blurred, THRESHOLD_PX_VAL)
+            flipped = cv2.flip(img_thresholded, 1)
+            ids = A_detect(flipped)
+            #ids = set(ids)
+            p_id_set = set()
+            #If id is not None add to a array of sets 
+            #If it is none, 
+            if ids is not None:
+                for inner_arr in ids:
+                    for i in inner_arr:
+                        p_id_set.add(i)
+                    
+            arr.append(p_id_set)
+        #print('Predicted arrAy with the sets of 2 ids is ', arr)    
+        return arr
+    
+    
+def score_3_debug(s1, s2):
+            score = 0
+            for set1, set2 in zip(s1, s2):
+                if not set2:
+                    continue
+                 #print('set1:', set1, 'set2:', set2)
+
+                for id1 in set1:
+                    if id1 in set2:
+                        
+                        score+=1
+
+            return score
+
+
+
+#small dataset 41 img - 1id 
+directory = r'D:\AI research internship\opencv_scripts\data_set'
+#small dataset 91 img  - 2 id
+#directory2 = r'D:\AI research internship\opencv_scripts\2_id'
+
+
+orig_set = original_id_2(img_dict)
+print(orig_set)
+predict_set = A_ppln_2(img_dict)
+print(predict_set)
+score = score_3_debug(orig_set, predict_set)
+print('the score is :', score)
 
  
                    
+
+
+a_orig_set = [set(),{40,30},{5},{40,30},{6},{20,30},set()]
+
+a_predicted_set = [set(),{17},{5},{40,30},set(),{20},{5}]
+
+score = score_3_debug(a_orig_set, a_predicted_set)
+print('the score is :', score)
+
+
+
+
+
+
+''''
+
+
+set1 = [{2,3},{2,3}]
+set2 = [{2},set()]
+score=0
+
+for s1, s2 in zip(set1, set2):
+    for i1, i2 in zip(s1,s2):
+        print('i1=',i1,' 12=',i2)
+        if i1==i2:
+          score+=1
+
+print(score)
+
+
+for s1, s2 in zip(set1, set2):
+    # Check if s2 is an empty set
+    if not s2:
+        continue
+
+    for i1 in s1:
+        for i2 in s2:
+            print('i1=', i1, ' i2=', i2)
+            if i1 == i2:
+                score += 1
+
+print('Score is', score)
+
+
+set1 = [{2,3},{2,3}]
+set2 = [{2},set()]
+
+def score_3(set1, set2):
+     score=0
+     for s1, s2 in zip(set1, set2):
+        # Check if s2 is an empty set
+        if not s2:
+            continue
+
+        for i1 in s1:
+            for i2 in s2:
+                print('i1=', i1, ' i2=', i2)
+                if i1 == i2:
+                    print(i1, 'and', i2, 'ís a match')
+                    score += 1
+                    return score 
+                    
+
+scoress = score_3(set1, set2)
+print('Score is ', scoress)
+
+
+'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+3 #CODE for the reuse 
+
+# Function Requires n Output : path to the folder, folder with images-files 
+
+""
+
+''''
+def load_images(directory):
+    image_dict = {}
+    for filename in os.listdir(directory):
+        if filename.endswith(".jpg") or filename.endswith(".png"):
+            image_path = os.path.join(directory, filename)
+            try:
+                image = cv2.imread(image_path)
+                image_dict[filename] = image
+            except OSError:
+                print(f"Unable to open image: {filename}")
+           # finally:
+           #     del image  # Release the memory for the image
+
+    return image_dict
+
+'''
+
+""""
+
+def image_generator(directory):
+    for filename in os.listdir(directory):
+        if filename.endswith(".jpg") or filename.endswith(".png"):
+            image_path = os.path.join(directory, filename)
+            try:
+                image = cv2.imread(image_path)
+                yield filename, image
+            except OSError:
+                print(f"Unable to open image: {filename}")
+
+def add_images_to_dictionary(directory):
+    image_dict = {}
+    for filename, image in image_generator(directory):
+        image_dict[filename] = image
+
+    return image_dict
+
+image_dict = add_images_to_dictionary(directory)
+
+"""
+''''
+    for batch in load_images_in_batches(directory, batch_size):
+        original_ids = original_id(batch)
+        print(original_ids)
+        predicted_ids = A_ppln(batch)
+       
+        new_arr_predicted_ids = [int(x[0, 0]) if x is not None else None for x in predicted_ids]
+        print(new_arr_predicted_ids)
+        img_count, scores, ratio,precision, recall = score(new_arr_predicted_ids,original_ids)
+        info(img_count, scores, ratio,precision, recall)
+        save_to_file(img_count, scores, ratio,precision, recall)
+       
+        
+    print("Batch complete")
+'''
+#TEST
+''''
+def info_ppln_small(ppln):
+ directory_s= r'D:\AI research internship\opencv_scripts\data_set'
+
+ for batch in load_images_in_batches(directory_s, batch_size):
+        original_ids = original_id(batch)
+        print(original_ids)
+        predicted_ids = ppln(batch)
+       
+        new_arr_predicted_ids = [int(x[0, 0]) if x is not None else None for x in predicted_ids]
+        print(new_arr_predicted_ids)
+        img_count, scores, ratio,precision, recall = score(new_arr_predicted_ids,original_ids)
+        return img_count, scores, ratio,precision, recall
+ 
+def info_ppln_big(ppln):
+ directory_b= r'D:\AI research internship\opencv_scripts\n_l_r_angl'
+#directory_2= r'D:\AI research internship\opencv_scripts\data_set
+
+ for batch in load_images_in_batches(directory_b, batch_size):
+        original_ids = original_id(batch)   
+        print(original_ids)
+        predicted_ids = ppln(batch)
+       
+        new_arr_predicted_ids = [int(x[0, 0]) if x is not None else None for x in predicted_ids]
+        # print(new_arr_predicted_ids)
+        img_count, scores, ratio,precision, recall = score(new_arr_predicted_ids,original_ids)
+        return img_count, scores, ratio,precision, recall
+
+
+A_img_count_s, A_scores_s, A_ratio_s,A_precision_s, A_recall_s= info_ppln_small(A_ppln)
+My_img_count_s, My_scores_s, My_ratio_s, My_precision_s, My_recall_s = info_ppln_small(My_ppln)
+F_img_count_s, F_scores_s, F_ratio_s,F_precision_s, F_recall_s = info_ppln_small(F_ppln)
+
+A_img_count_b, A_scores_b, A_ratio_b,A_precision_b, A_recall_b= info_ppln_big(A_ppln)
+My_img_count_b, My_scores_b, My_ratio_b, My_precision_b, My_recall_b = info_ppln_big(My_ppln)
+F_img_count_b, F_scores_b, F_ratio_b,F_precision_b, F_recall_b = info_ppln_big(F_ppln)
+
+
+ 
+def save_to_file():
+
+
+ output_filename = "all_ppl_scoreo.txt"  # Specify the filename and extension for the output text file
+
+    # Open the file in write mode ('w') and write the information to it
+ with open(output_filename, 'w') as file:
+        file.write(f"Image processing  for Amrit's ppln & small dataset scored at {int(A_ratio_s)} %\n")
+        file.write(f"Out of {A_img_count_s} images, {A_scores_s} were predicted\n")
+        file.write(f"Score: {A_ratio_s}%\n")
+        file.write(f"Precision: {A_precision_s}%\n")
+        file.write(f"Recall: {A_recall_s}%\n")
+
+        file.write(f"Image processing pipeline for my ppln & small dataset  scored at {int(My_ratio_s)} %\n")
+        file.write(f"Out of {My_img_count_s} images, {My_scores_s} were predicted\n")
+        file.write(f"Score: {My_scores_s}%\n")
+        file.write(f"Precision: {My_precision_s}%\n")
+        file.write(f"Recall: {My_recall_s}%\n")
+
+        file.write(f"Image processing pipeline for Fahd's ppln &  small dataset scored at {int(F_ratio_s)} %\n")
+        file.write(f"Out of {F_img_count_s} images, {F_scores_s} were predicted\n")
+        file.write(f"Score: {F_ratio_s}%\n")
+        file.write(f"Precision: {F_precision_s}%\n")
+        file.write(f"Recall: {F_recall_s}%\n")
+
+#big_data
+        file.write(f"Image processing pipeline for Amrit's ppln & big dataset scored at {int(A_ratio_b)} %\n")
+        file.write(f"Out of {A_img_count_b} images, {A_scores_b} were predicted\n")
+        file.write(f"Score: {A_ratio_b}%\n")
+        file.write(f"Precision: {A_precision_b}%\n")
+        file.write(f"Recall: {A_recall_b}%\n")
+
+        file.write(f"Image processing pipeline for My ppln & big dataset scored at {int(My_ratio_b)} %\n")
+        file.write(f"Out of {My_img_count_b} images, {My_scores_b} were predicted\n")
+        file.write(f"Score: {My_scores_b}%\n")
+        file.write(f"Precision: {My_precision_b}%\n")
+        file.write(f"Recall: {My_recall_b}%\n")
+
+        file.write(f"Image processing pipeline for Fahad's ppln & big dataset scored scored at {int(F_ratio_b)} %\n")
+        file.write(f"Out of {F_img_count_b} images, {F_scores_s} were predicted\n")
+        file.write(f"Score: {F_ratio_b}%\n")
+        file.write(f"Precision: {F_precision_b}%\n")
+        file.write(f"Recall: {F_recall_b}%\n")
+
+print("Information saved to", output_filename)
+
+
+
+save_to_file()
+
+'''
+''''
+if args.score_with_images:
+
+
+   original_ids = original_id(image_dict)
+
+
+   predicted_ids = predicted_id(image_dict)
+
+   print(predicted_ids)
+
+   img_count,scores,ratio = score(original_ids,predicted_ids)
+
+   info(img_count,scores,ratio)
+ 
+   while(True):
+     for key, values in image_dict.items():
+         img1 = cv2.imread(key)
+         img2 = processed(img1)
+         
+         combined = combined_2(img1, img2)
+         combined.show()
+   
+    
+     
+     if cv2.waitKey(1) & 0xFF == ord('x'):
+         combined.close()
+         break
+     
+     
+cap.release()
+cv2.destroyAllWindows()
+
+'''
