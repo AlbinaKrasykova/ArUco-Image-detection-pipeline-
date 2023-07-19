@@ -7,6 +7,7 @@ from shadow_highlight_correction import correction
 import math
 import os
 import re
+from PIL import Image
 
 
 #GOAL 1: score function which scores ing pppln according to how well it perfomed  ✔
@@ -41,6 +42,10 @@ import re
 
 #12 #Function: inserting  any pipelines and getting the result 
 
+##CLean the code rn - repeating values, implenet 2 id's to every ppln 
+# Score the string and add the classification to the scoring function
+# label each predicted id as option(FP,TP,TN,FN), compere to exel while manually created 
+
 #I was trying to import functions but I got work more of functions I importing like these which imports images 
 #from Amrits_ppln import correction , contrast, threshold, calibration_frame, clahe, blur, THRESHOLD_PX_VAL 
 
@@ -54,11 +59,6 @@ detector = cv2.aruco.ArucoDetector(dictionary)
 
 #0. Function that Generates dictionary with images from the file - ✔
 # Key: 9_angle_6_.png, Value: <PIL.PngImagePlugin.PngImageFile image mode=RGB size=1920x1080 at 0x178C0FF6BF0>
-
-
-#n_l_r_angl
-
-#directory = r'D:\AI research internship\opencv_scripts\n_l_r_angl'
 
 
 
@@ -158,7 +158,7 @@ def pplns(ppln):
         img_count, scores, ratio,precision, recall = score(new_arr_predicted_ids,original_ids)
         info(img_count, scores, ratio,precision, recall)
 
-# A_ppln CREATE an ARRAY with Tags that were predicted 
+# A_ppln CREATE an ARRAY with Tags that were predicted - > reimplemnt function with array of sets 
 
 calibration_frame = None
 
@@ -246,8 +246,10 @@ def A_ppln(image_dict):
         p_id_arr.append(ids)
     print('Amrits array with predicted id is: ', p_id_arr)
     return p_id_arr
+
 #4
 
+''''
 def pplns_output(ppln):
 
  for batch in load_images_in_batches(directory, batch_size):
@@ -259,8 +261,10 @@ def pplns_output(ppln):
         print(new_arr_predicted_ids)
         img_count, scores, ratio,precision, recall = score(new_arr_predicted_ids,original_ids)
         info(img_count, scores, ratio,precision, recall)
+'''
 
 #5 Function that combines and displays 2 images side by side  - ✔
+
 
 def combined_2(img1, img2):
 
@@ -279,6 +283,10 @@ def combined_2(img1, img2):
  return combined_image
 
 #6 Calculates the precison and recall - ✔ 
+#if original is empty set(), and predicted is empty TN++  EX:  (set() - > set()) - TN++
+#id the original is empty set(, and predicted is something else then empty FP++ EX: (set() -> {17}) - FP++ 
+#ALso if the set is one value, and th epredicted is anothe value, FP++ EX: ({23,40} -> {17}) - FP++ 
+
 
 def calc_p_r(original_ids, predicted_ids):
     true_positive = 0
@@ -324,7 +332,7 @@ def score(original_id, predicted_id):
 
 #7 Display ratio based on the precious scoring subfunction  - ✔
 
-
+#TO ADD: toal FP/TN/FN/TP
 def info(score,total,ratio,precision, recall):
      total = total
      score = score
@@ -339,7 +347,7 @@ def info(score,total,ratio,precision, recall):
 
 
 
-
+'''
 def processed(img):
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     clache = cv2.createCLAHE(clipLimit=40)
@@ -351,6 +359,7 @@ def processed(img):
     return flipped
 
 
+'''
 
 cap = cv2.VideoCapture(0)
 
@@ -363,7 +372,7 @@ parser.add_argument('--my_score', action='store_true')
 parser.add_argument('--Fahad_score', action='store_true')
 parser.add_argument('--Amrit_score', action='store_true')
 parser.add_argument('--score_2id', action='store_true')
-#parser.add_argument('--score_with_images', action='store_true')
+
 args = parser.parse_args()
 
 output_filename = 'output.doc'  
@@ -372,7 +381,6 @@ output_filename = 'output.doc'
 
 if args.my_score:
 
-    #n_l_r_angl
     batch_size = 150
     directory = r'D:\AI research internship\opencv_scripts\n_l_r_angl'
 
@@ -409,7 +417,7 @@ if args.my_score:
 
     print('My ppln score: ')   
     print('')
-    #pplns(My_ppln)
+    
     print("Batch complete")
 
 
@@ -513,10 +521,10 @@ if args.score_2id:
             img_thresholded = threshold(img_blurred, THRESHOLD_PX_VAL)
             flipped = cv2.flip(img_thresholded, 1)
             ids = A_detect(flipped)
-            #ids = set(ids)
+            
             p_id_set = set()
-            #If id is not None add to a array of sets 
-            #If it is none, 
+            
+             
             if ids is not None:
                 for inner_arr in ids:
                     for i in inner_arr:
@@ -529,6 +537,8 @@ if args.score_2id:
     #A_ppln that handles none values 
 
 
+     #Add count to each of classification param
+     #print oroginal value and predict value and lable as any od 4 values 
 
     def calc_p_r(original_ids, predicted_ids):
         #I did - > it predicted 
@@ -578,97 +588,14 @@ if args.score_2id:
             return score
 
         
-                        
-        #precision, recall = calc_p_r(original_set, predicted_set)
-        #ratio = (score / total) * 100
-       
-        #return score, total, ratio, precision, recall
-    
+                            
 
-    def score_3(original_set, predicted_set):
-        scores = 0
-        total = len(original_set)
-        predicted_id_count = len(predicted_set)
+#TEST 
 
-        print('Total images:', original_set)
-        print('Predicted images:', predicted_id_count)
-        
-        for set1, set2 in zip(original_set, predicted_set):
-            # Check if s2 is an empty set bc set with the pred could be empty 
-            if not set2:
-                continue
-            print(set1, set2)
-
-            for id1 in set1:
-                for id2 in set2:
-                    #print('i1=', i1, ' i2=', i2)
-                    if id1 == id2:
-                        #print(i1, 'and', i2, 'ís a match')
-                        score += 1
-                        return score 
-        precision, recall = calc_p_r(original_set, predicted_set)
-        ratio = (scores / total) * 100
-        print('Scores:', scores)
-        return scores, total, ratio, precision, recall
-    
-
-    
-
-    
-    
-    original_set = original_id_2(img_dict)
-    predicted_set = A_ppln_2(img_dict)
-    
-    print('printing function results ')
-    score = score_3_debug(original_set, predicted_set)
-    print('The score is --', score)
-    #scores, total, ratio, precision, recall = score_3_debug(original_set, predicted_set)
-    #info(scores, total, ratio, precision, recall)
-
-
-
-    
-
-
-#issue i am running into none is not itterable
+#issue i am running into none is not itterable - solved - create an empty set instead of none 
 #  out of 91 images saves just 2 because sets saves n stores
 
 
-
-
-def score(original_id, predicted_id):
-    scores = 0
-    total = len(original_id)
-    predicted_id_count = len(predicted_id)
-    print()
-    print('Total images:', total)
-    print('Predicted images:', predicted_id_count)
-
-    for id in original_id:
-        if isinstance( id, int) and id in predicted_id:
-            scores += 1
-
-    precision, recall = calc_p_r(original_id, predicted_id)
-    ratio = (scores / total) * 100
-    print('Scores:', scores)
-    return scores, total, ratio, precision, recall
-
-
-
-
-
-def load_images(directory):
-    image_dict = {}
-    for filename in os.listdir(directory):
-        if filename.endswith(".jpg") or filename.endswith(".png"):
-            image_path = os.path.join(directory, filename)
-            try:
-                image = cv2.imread(image_path)
-                image_dict[filename] = image
-            except OSError:
-                print(f"Unable to open image: {filename}")
-
-    return image_dict
 
 
 
@@ -676,32 +603,7 @@ def load_images(directory):
 directory = r'D:\AI research internship\opencv_scripts\data_set'
 
 
-
-
-import re 
-
-
-
-
 #cleans a string, count ids, ignores the last digit(angle)
-import re
-
-def clean_string(string):
-    digits = re.findall(r'\d+', string)
-    if len(digits) > 1:
-        digits = digits[:-1]  # Ignore the last group of digits
-    cleaned_string = '_'.join(digits)
-    count = len(digits)
-    print('String is', cleaned_string)
-    print('Count of ids is', count)
-    return count, cleaned_string
-
-
-
-s1 = '3id_5'
-s2 = '1_id_up_dwn_angl_140'
-s3 = '20_30_40'
-clean_string(s1)
 
 
 
@@ -719,48 +621,18 @@ def load_images(directory):
     return image_dict
 
 
-img_dict = load_images(directory) 
+
 
 def clean_string(string):
     digits = re.findall(r'\d+', string)
     if len(digits) > 1:
-        digits = digits[:-1]  # Ignore the last group of digits
+        digits = digits[:-1]  
     cleaned_string = '_'.join(digits)
     count = len(digits)
-    #print('String is', cleaned_string)
-    #print('Count of ids is', count)
+    
     return count, cleaned_string
 
 
-
-#doesnt work 
-def original_id_2_1(image_dict):
-    arr = []
-    
-    # Create the pattern based on the ID count
-    pattern = r'^(\d{1,2})'
-    
-
-    for key in image_dict.keys():
-        count, key = clean_string(key)
-        print('Count of ids is ', count,' the key is  ', key)
-        for _ in range(1, count):
-         pattern += r'_(\d{1,2})'
-
-        digit_set = set()
-        match = re.match(pattern, key)
-        if match:
-            for group in match.groups():
-                digit_set.add(int(group))
-            arr.append(digit_set)
-        else:
-            print(f"Key '{key}' does not match the pattern.")
-    
-    print(arr)
-    return arr
-
-    
-import re
 
 def original_id_2(image_dict):
     arr = []
@@ -782,13 +654,11 @@ def original_id_2(image_dict):
         else:
             print(f"Key '{key}' does not match the pattern.")
 
-    print(arr)
     return arr
 
 
 
-arr = original_id_2(img_dict)
-print(arr)
+
 
 
     
@@ -809,26 +679,74 @@ def A_ppln_2(image_dict):
             img_thresholded = threshold(img_blurred, THRESHOLD_PX_VAL)
             flipped = cv2.flip(img_thresholded, 1)
             ids = A_detect(flipped)
-            #ids = set(ids)
+            
             p_id_set = set()
-            #If id is not None add to a array of sets 
-            #If it is none, 
+            
             if ids is not None:
                 for inner_arr in ids:
                     for i in inner_arr:
                         p_id_set.add(i)
                     
-            arr.append(p_id_set)
-        #print('Predicted arrAy with the sets of 2 ids is ', arr)    
+            arr.append(p_id_set) 
         return arr
     
-    
-def score_3_debug(s1, s2):
+
+#small dataset 41 img - 1id 
+directory = r'D:\AI research internship\opencv_scripts\data_set'
+#small dataset 91 img  - 2 id
+#directory2 = r'D:\AI research internship\opencv_scripts\2_id'
+
+''''
+orig_set = original_id_2(img_dict)
+print(orig_set)
+predict_set = A_ppln_2(img_dict)
+print(predict_set)
+score = score_3_debug(orig_set, predict_set)
+print('the score is :', score)
+'''
+
+ 
+def calc_p_r(original_ids, predicted_ids):
+        #I did - > it predicted 
+        true_positive = 0
+        #I did -> it didn't predicted  FN
+        false_negative = 0
+        #I didn't do -> it predicted 
+        false_positive = 0
+        #I didn't do - >  it didn't predict 
+        true_negative = 0
+
+        #Q:  do i have to create set with empty values as for possible false positive/true negative cases 
+
+        for i in range(len(original_ids)):
+            if original_ids[i] == predicted_ids[i]:
+                true_positive += 1
+            else:
+                false_negative += 1
+
+        false_negative = len(original_ids) - true_positive
+
+        precision = 0
+        recall = 0
+
+        if true_positive + false_positive != 0:
+            precision = true_positive / (true_positive + false_positive)
+
+        if true_positive + false_negative != 0:
+            recall = true_positive / (true_positive + false_negative)
+
+        return true_positive, true_negative, false_negative, precision, recall
+
+
+
+
+
+def score3(s1, s2):
             score = 0
             for set1, set2 in zip(s1, s2):
                 if not set2:
                     continue
-                 #print('set1:', set1, 'set2:', set2)
+                
 
                 for id1 in set1:
                     if id1 in set2:
@@ -837,90 +755,82 @@ def score_3_debug(s1, s2):
 
             return score
 
-
-
-#small dataset 41 img - 1id 
-directory = r'D:\AI research internship\opencv_scripts\data_set'
-#small dataset 91 img  - 2 id
-#directory2 = r'D:\AI research internship\opencv_scripts\2_id'
-
-
-orig_set = original_id_2(img_dict)
-print(orig_set)
-predict_set = A_ppln_2(img_dict)
-print(predict_set)
-score = score_3_debug(orig_set, predict_set)
-print('the score is :', score)
-
- 
                    
+#Dataset
+
+def info(original, predicted):
+
+     
+     total = len(original)
+     score = score3(original, predicted)
+     ratio = score/total*100
+     true_positive, true_negative, false_negative, precision, recall =  calc_p_r(original, predicted)
+     print()
+     print('---------------------------------------------------')
+     print(f"Image processing pipeline scored at {int(ratio)} %")
+     print(f"Out of {total} images {score} were predicted")
+     print('Score:', ratio, '%')
+     print('precision:', precision, '%')
+     print('recall:', recall, '%')
+     print('true_positive total:', true_positive)
+     print('false_negative total:', false_negative)
+     print('true_negative total:', true_negative)
+     print('---------------------------------------------------')
+     print()
 
 
 a_orig_set = [set(),{40,30},{5},{40,30},{6},{20,30},set()]
 
 a_predicted_set = [set(),{17},{5},{40,30},set(),{20},{5}]
 
-score = score_3_debug(a_orig_set, a_predicted_set)
-print('the score is :', score)
+print()
+print('---------------------------------------------------')
+print('Info for the Artificially created dataset (various cases as no id - set(), 1id, 2+ ids)')
+print('---------------------------------------------------')
+info(a_orig_set, a_predicted_set)
+
+
+print('---------------------------------------------------')
+print('Info for the excitent small Test Dataset of 41 images (1 case: 1 id)')
+print('---------------------------------------------------')
+print()
 
 
 
+'''
+
+print()
+print('Org vs Predicted')
+print('Original')
+print(orig_set)
+print('Predicted')
+print(predict_set)
+print()
+print()
 
 
 
-''''
+#print(a_orig_set, a_predicted_set)
+
+directory = r'D:\AI research internship\opencv_scripts\data_set'
+
+img_dict = load_images(directory) 
 
 
-set1 = [{2,3},{2,3}]
-set2 = [{2},set()]
-score=0
+orig_set = original_id_2(img_dict)
+predict_set = A_ppln_2(img_dict)
+info(orig_set, predict_set)
 
-for s1, s2 in zip(set1, set2):
-    for i1, i2 in zip(s1,s2):
-        print('i1=',i1,' 12=',i2)
-        if i1==i2:
-          score+=1
-
-print(score)
+count  = 0
+for s1, s2 in zip(orig_set, predict_set):
+    count+=1
+    print('#', count, ' original: ',s1,' predicted: ', s2)
 
 
-for s1, s2 in zip(set1, set2):
-    # Check if s2 is an empty set
-    if not s2:
-        continue
 
-    for i1 in s1:
-        for i2 in s2:
-            print('i1=', i1, ' i2=', i2)
-            if i1 == i2:
-                score += 1
-
-print('Score is', score)
-
-
-set1 = [{2,3},{2,3}]
-set2 = [{2},set()]
-
-def score_3(set1, set2):
-     score=0
-     for s1, s2 in zip(set1, set2):
-        # Check if s2 is an empty set
-        if not s2:
-            continue
-
-        for i1 in s1:
-            for i2 in s2:
-                print('i1=', i1, ' i2=', i2)
-                if i1 == i2:
-                    print(i1, 'and', i2, 'ís a match')
-                    score += 1
-                    return score 
-                    
-
-scoress = score_3(set1, set2)
-print('Score is ', scoress)
-
-
+for s1, s2 in zip(a_orig_set,a_predicted_set):
+    count+=1
+    print(s1,'  ', s2)
 '''
 
 
@@ -931,32 +841,7 @@ print('Score is ', scoress)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#Small Dataset 
 
 
 
