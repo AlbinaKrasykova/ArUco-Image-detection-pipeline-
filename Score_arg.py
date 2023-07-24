@@ -249,19 +249,6 @@ def A_ppln(image_dict):
 
 #4
 
-''''
-def pplns_output(ppln):
-
- for batch in load_images_in_batches(directory, batch_size):
-        original_ids = original_id(batch)
-        print(original_ids)
-        predicted_ids = ppln(batch)
-       
-        new_arr_predicted_ids = [int(x[0, 0]) if x is not None else None for x in predicted_ids]
-        print(new_arr_predicted_ids)
-        img_count, scores, ratio,precision, recall = score(new_arr_predicted_ids,original_ids)
-        info(img_count, scores, ratio,precision, recall)
-'''
 
 #5 Function that combines and displays 2 images side by side  - ✔
 
@@ -775,8 +762,46 @@ if args.score_all_cases:
             return true_positive, true_negative, false_negative, precision, recall
 
 
+    
+    
+    def fixed_calc_p_r(original_ids, predicted_ids):
+            total_TP = 0
+            total_FP = 0
+            total_FN = 0
+            true_negative = 0
+            false_positive2 = 0
+            scores = 0
 
+            for set_o, set_p in zip(original_ids, predicted_ids):
+                if set_o != set():  # Multiple cases for TP, FN, FP
+                    intersection = set_o & set_p 
+                    true_positive = len(intersection)
+                    false_positive = len(set_p - set_o)
+                    false_negative = len(set_o) - true_positive - false_positive
+                    total_TP += true_positive
+                    total_FP += false_positive
+                    total_FN += false_negative
+                    scores += total_TP
+        
+                # Cases for the empty sets: TN (set() -> set()), FP#2 case (set() -> {30})
+                if set_o == set():
+                    if set_o == set_p:
+                     true_negative += 1
+                     scores +=1
+                    if set_o != set_p:
+                        false_positive2 += 1
 
+            if true_positive + false_positive != 0:
+                precision = true_positive / (true_positive + false_positive+false_positive2)
+            else:
+                precision = 0
+
+            if true_positive + false_negative != 0:
+                recall = true_positive / (true_positive + false_negative)
+            else:
+                recall = 0
+
+            return total_TP, total_FP, total_FN, true_negative, false_positive2,precision,recall, scores
 
 
     def score3(s1, s2):
@@ -852,12 +877,14 @@ if args.score_all_cases:
 #Test function calc precision and score 
 
 
+# true_positive - I did - > it predicted 
+#false_negative - I did -> it didn't predicted  FN
+# false_positive  - I didn't do -> it predicted 
+# true_negative  - #I didn't do - >  it didn't predict 
+         
 
 
-
-original_ids = [ {30}, {30,40,50},set(), set(),{30,40}]
-
-predicted_ids = [{30} , {30}, set(),{30}, {17}]
+        
 
 true_positive = 0
 true_negative = 0
@@ -865,323 +892,198 @@ false_negative = 0
 false_positive = 0
 score = 0
 
+#True positive 
+#works for 1 case, but won't work with more values added ?
+#
+original_ids=[{30,20,40}, set(),set()]
+predicted_ids=[{30,119}, {30},set()]
 
 
-# true_positive - I did - > it predicted 
-#false_negative - I did -> it didn't predicted  FN
-# false_positive  - I didn't do -> it predicted 
-# true_negative  - #I didn't do - >  it didn't predict 
+
+#original_ids=[{30,20,40}, {30,20},set(),{30},set()]
+#predicted_ids=[{30,119}, {30}, set(),{30},{30}]
+
+total_TP = 0
+total_FP = 0
+total_FN = 0
+false_positive2=0
+'''
+Cases to work with:
+1) Multiple (inner) cases: TP({30}->{30}) FN ({10}->set()) FP#1 ({40}->{119}, FP#2 (set()->{30}))
+2) Empty cases : TN(set()->set())
+'''
+for set_o, set_p in zip(original_ids,predicted_ids):
+ if set_o!=set():   
+  #if len(set_o)>1:  #multiple cases for tp fn fp 
+    intersection = set_o & set_p 
+    true_positive=len(intersection)
+    false_positive= len(set_p-set_o)
+    false_negative= len(set_o) - true_positive - false_positive
+    total_TP +=true_positive
+    total_FP +=false_positive
+    total_FN +=false_negative 
+  
+  # cases for the empty sets cases: TN (set()-> set()), FP#2 case (set() -> {30})
+ if set_o==set():
+    if set_o==set_p:
+        true_negative+=1
+    if set_o!=set_p:
+        false_positive2+=1
+    
+  
+  
+      
+        def fixed_calc_p_r(original_ids, predicted_ids):
+            total_TP = 0
+            total_FP = 0
+            total_FN = 0
+            true_negative = 0
+            false_positive2 = 0
+            scores = 0
+
+            for set_o, set_p in zip(original_ids, predicted_ids):
+                if set_o != set():  # Multiple cases for TP, FN, FP
+                    intersection = set_o & set_p 
+                    true_positive = len(intersection)
+                    false_positive = len(set_p - set_o)
+                    false_negative = len(set_o) - true_positive - false_positive
+                    total_TP += true_positive
+                    total_FP += false_positive
+                    total_FN += false_negative
+                    scores += total_TP
         
+                # Cases for the empty sets: TN (set() -> set()), FP#2 case (set() -> {30})
+                if set_o == set():
+                    if set_o == set_p:
+                     true_negative += 1
+                     scores +=1
+                    if set_o != set_p:
+                        false_positive2 += 1
 
-#empty case handling 
+            if true_positive + false_positive != 0:
+                precision = true_positive / (true_positive + false_positive+false_positive2)
+            else:
+                precision = 0
 
-#Handle multiple cases 
+            if true_positive + false_negative != 0:
+                recall = true_positive / (true_positive + false_negative)
+            else:
+                recall = 0
 
-for i in range(len(original_ids)):
-        
-        # 1 handle all the empty case 
-        #score count 1/len(original_ids[i])
-        if original_ids[i] == set():
-            print('Handling the empty case', original_ids[i],' ',  predicted_ids[i] )
+            return total_TP, total_FP, total_FN, true_negative, false_positive2,precision,recall, scores
 
-            # - fales positive case 
-            if original_ids[i] != predicted_ids[i]:
-                print('Handeling false positive cases', original_ids[i],' ',  predicted_ids[i] )
-                false_positive+=1
 
-            if original_ids[i] == predicted_ids[i]:
-                print('Handeling true negative cases', original_ids[i],' ',  predicted_ids[i] )
-                true_negative+=1
+     
+total_TP, total_FP, total_FN, true_negative, false_positive2, p,r, s = fixed_calc_p_r(original_ids, predicted_ids)
 
-        #2 handle vales cases
 
-        if original_ids[i] != set():
-          if original_ids[i] == predicted_ids[i]:
-            print('Handeling true postive cases', original_ids[i],' ',  predicted_ids[i])
-            true_positive+=1
-            print('1/len(original_ids[i]): ', len(original_ids[i]))
-            score = 1/len(original_ids[i])
 
-          if predicted_ids[i]==set():
-              print('Handeling false negative cases', original_ids[i],' ',  predicted_ids[i] )
-              false_negative+=1
 
-print('score', score)
+print(f'Predicted: Score:{s} | TP:{total_TP}, FN:{total_FP}, TN:{true_negative}, FP-1:{total_FN}, FP-2:{false_positive2} | precision:{p}, recall:{r}')
+print('Expected: Score:  | TP:1, FN:1, TN:1, FP-1:1, FP-2:1 | precision:0.3, recall:0.5',)
+print('Scores',s)
+
+'''
+
+
+
+print('NEW')
+#original_ids=[{30,10,20}, set(),set(),{10}]
+#predicted_ids=[{30},set(),{10},{19}]
+original_ids=[{30,10,20}]
+predicted_ids=[{30}]
+
+for set_o, set_p in zip(original_ids, predicted_ids):
+    intersection = set_o & set_p  # Intersection of sets to find common elements
+    print(intersection)
+    if intersection in set_o:
+        print('True positive:')
+        true_positive += 1
+        if len(set_o) > 0:
+            score += 1 / len(set_o)
+    elif intersection:
+        print('False negative:', set_o - intersection)
+        false_negative += len(set_o - intersection)
+        false_positive += len(set_p - intersection)
+    else:
+        print('False positive:', set_p)
+        false_positive += len(set_p)
+
+  
+
+
+print('true positive' , true_positive)
+print('false_negative' , false_negative)
 print('true_negative: ', true_negative)
 print('false_positive: ', false_positive)
-print('false_negative' , false_positive)
-print('true positive' , true_positive)
-           
 
 
-            
+print('score', score)
 
+original_ids=[{30,10,20}, set(),set(),{10}]
+predicted_ids=[{30},set(),{10},{19}]
+print('Expected: 30-30, 10-empty, 20-empty, set()-set(), set()-10, 10-19')
+print(f'Calculated: TP: {true_positive}: FN: {false_negative}, TN: {true_negative} ,  FP: {false_positive}')
+print('Expected: TP: 1, FN: 2, TN: 1, FP:2')
 
-''''
-        #Handle all the case with the values 
-        print('Handling cases with values in it')
-        # 1- true positive case iwth values
-        if original_ids[i]!= set() and original_ids[i] == predicted_ids[i]:
-            print('Handling true positive')
-            score = 1/len(original_ids[i])
-            true_positive+=1
-        #2 - false positive case with values
-        if original_ids[i] !=predicted_ids[i]:
-            print('Handling false positive')
-            false_positive+=1
-          
-         #3 - false_negative - I did -> it didn't predicted  FN
-        if predicted_ids[i] == set():
-            print('Handling false negative')
-            false_positive+=1
-            
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-3 #CODE for the reuse 
-
-# Function Requires n Output : path to the folder, folder with images-files 
-
-""
-def load_images(directory):
-    image_dict = {}
-    for filename in os.listdir(directory):
-        if filename.endswith(".jpg") or filename.endswith(".png"):
-            image_path = os.path.join(directory, filename)
-            try:
-                image = cv2.imread(image_path)
-                image_dict[filename] = image
-            except OSError:
-                print(f"Unable to open image: {filename}")
-           # finally:
-           #     del image  # Release the memory for the image
-
-    return image_dict
+#Calcuates case {10}-{19} as false negative instead of false psoitive fix
 
 '''
 
-""""
-
-def image_generator(directory):
-    for filename in os.listdir(directory):
-        if filename.endswith(".jpg") or filename.endswith(".png"):
-            image_path = os.path.join(directory, filename)
-            try:
-                image = cv2.imread(image_path)
-                yield filename, image
-            except OSError:
-                print(f"Unable to open image: {filename}")
-
-def add_images_to_dictionary(directory):
-    image_dict = {}
-    for filename, image in image_generator(directory):
-        image_dict[filename] = image
-
-    return image_dict
-
-image_dict = add_images_to_dictionary(directory)
-
-"""
-''''
-    for batch in load_images_in_batches(directory, batch_size):
-        original_ids = original_id(batch)
-        print(original_ids)
-        predicted_ids = A_ppln(batch)
-       
-        new_arr_predicted_ids = [int(x[0, 0]) if x is not None else None for x in predicted_ids]
-        print(new_arr_predicted_ids)
-        img_count, scores, ratio,precision, recall = score(new_arr_predicted_ids,original_ids)
-        info(img_count, scores, ratio,precision, recall)
-        save_to_file(img_count, scores, ratio,precision, recall)
-       
-        
-    print("Batch complete")
-'''
-#TEST
-''''
-def info_ppln_small(ppln):
- directory_s= r'D:\AI research internship\opencv_scripts\data_set'
-
- for batch in load_images_in_batches(directory_s, batch_size):
-        original_ids = original_id(batch)
-        print(original_ids)
-        predicted_ids = ppln(batch)
-       
-        new_arr_predicted_ids = [int(x[0, 0]) if x is not None else None for x in predicted_ids]
-        print(new_arr_predicted_ids)
-        img_count, scores, ratio,precision, recall = score(new_arr_predicted_ids,original_ids)
-        return img_count, scores, ratio,precision, recall
- 
-def info_ppln_big(ppln):
- directory_b= r'D:\AI research internship\opencv_scripts\n_l_r_angl'
-#directory_2= r'D:\AI research internship\opencv_scripts\data_set
-
- for batch in load_images_in_batches(directory_b, batch_size):
-        original_ids = original_id(batch)   
-        print(original_ids)
-        predicted_ids = ppln(batch)
-       
-        new_arr_predicted_ids = [int(x[0, 0]) if x is not None else None for x in predicted_ids]
-        # print(new_arr_predicted_ids)
-        img_count, scores, ratio,precision, recall = score(new_arr_predicted_ids,original_ids)
-        return img_count, scores, ratio,precision, recall
-
-
-A_img_count_s, A_scores_s, A_ratio_s,A_precision_s, A_recall_s= info_ppln_small(A_ppln)
-My_img_count_s, My_scores_s, My_ratio_s, My_precision_s, My_recall_s = info_ppln_small(My_ppln)
-F_img_count_s, F_scores_s, F_ratio_s,F_precision_s, F_recall_s = info_ppln_small(F_ppln)
-
-A_img_count_b, A_scores_b, A_ratio_b,A_precision_b, A_recall_b= info_ppln_big(A_ppln)
-My_img_count_b, My_scores_b, My_ratio_b, My_precision_b, My_recall_b = info_ppln_big(My_ppln)
-F_img_count_b, F_scores_b, F_ratio_b,F_precision_b, F_recall_b = info_ppln_big(F_ppln)
-
-
- 
-def save_to_file():
-
-
- output_filename = "all_ppl_scoreo.txt"  # Specify the filename and extension for the output text file
-
-    # Open the file in write mode ('w') and write the information to it
- with open(output_filename, 'w') as file:
-        file.write(f"Image processing  for Amrit's ppln & small dataset scored at {int(A_ratio_s)} %\n")
-        file.write(f"Out of {A_img_count_s} images, {A_scores_s} were predicted\n")
-        file.write(f"Score: {A_ratio_s}%\n")
-        file.write(f"Precision: {A_precision_s}%\n")
-        file.write(f"Recall: {A_recall_s}%\n")
-
-        file.write(f"Image processing pipeline for my ppln & small dataset  scored at {int(My_ratio_s)} %\n")
-        file.write(f"Out of {My_img_count_s} images, {My_scores_s} were predicted\n")
-        file.write(f"Score: {My_scores_s}%\n")
-        file.write(f"Precision: {My_precision_s}%\n")
-        file.write(f"Recall: {My_recall_s}%\n")
-
-        file.write(f"Image processing pipeline for Fahd's ppln &  small dataset scored at {int(F_ratio_s)} %\n")
-        file.write(f"Out of {F_img_count_s} images, {F_scores_s} were predicted\n")
-        file.write(f"Score: {F_ratio_s}%\n")
-        file.write(f"Precision: {F_precision_s}%\n")
-        file.write(f"Recall: {F_recall_s}%\n")
-
-#big_data
-        file.write(f"Image processing pipeline for Amrit's ppln & big dataset scored at {int(A_ratio_b)} %\n")
-        file.write(f"Out of {A_img_count_b} images, {A_scores_b} were predicted\n")
-        file.write(f"Score: {A_ratio_b}%\n")
-        file.write(f"Precision: {A_precision_b}%\n")
-        file.write(f"Recall: {A_recall_b}%\n")
-
-        file.write(f"Image processing pipeline for My ppln & big dataset scored at {int(My_ratio_b)} %\n")
-        file.write(f"Out of {My_img_count_b} images, {My_scores_b} were predicted\n")
-        file.write(f"Score: {My_scores_b}%\n")
-        file.write(f"Precision: {My_precision_b}%\n")
-        file.write(f"Recall: {My_recall_b}%\n")
-
-        file.write(f"Image processing pipeline for Fahad's ppln & big dataset scored scored at {int(F_ratio_b)} %\n")
-        file.write(f"Out of {F_img_count_b} images, {F_scores_s} were predicted\n")
-        file.write(f"Score: {F_ratio_b}%\n")
-        file.write(f"Precision: {F_precision_b}%\n")
-        file.write(f"Recall: {F_recall_b}%\n")
-
-print("Information saved to", output_filename)
 
 
 
-save_to_file()
-
-'''
-''''
-if args.score_with_images:
 
 
-   original_ids = original_id(image_dict)
 
 
-   predicted_ids = predicted_id(image_dict)
 
-   print(predicted_ids)
 
-   img_count,scores,ratio = score(original_ids,predicted_ids)
 
-   info(img_count,scores,ratio)
- 
-   while(True):
-     for key, values in image_dict.items():
-         img1 = cv2.imread(key)
-         img2 = processed(img1)
-         
-         combined = combined_2(img1, img2)
-         combined.show()
-   
-    
-     
-     if cv2.waitKey(1) & 0xFF == ord('x'):
-         combined.close()
-         break
-     
-     
-cap.release()
-cv2.destroyAllWindows()
 
-'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
