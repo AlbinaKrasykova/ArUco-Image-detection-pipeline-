@@ -425,18 +425,22 @@ if args.Fahad_score:
     pplns(F_ppln)
      
 
-if args.Amrit_score:
-    
-    batch_size = 150
-    directory = r'D:\AI research internship\opencv_scripts\n_l_r_angl'
 
-    print('Amrit ppln score: ')  
-    print('')
- 
-    
-    pplns(A_ppln)
+# A ppln ---------------------------------------------------------------------------------------------------------------------------------
+    if args.Amrit_score:
+        
+        batch_size = 150
+        directory = r'D:\AI research internship\opencv_scripts\n_l_r_angl'
 
-# Dataset 2ID's  
+        print('Amrit ppln score: ')  
+        print('')
+    
+        
+        pplns(A_ppln)
+
+# The End of A ppln ------------------------------------------------------------------------------------------------------------------------
+
+# Testing 2ID's dataset ----------------------------------------------------------------------------------------------------------------------- 
 
 if args.score_2id:
     
@@ -561,20 +565,8 @@ if args.score_2id:
     
 
     
-    def score_3_debug(s1, s2):
-            score = 0
-            for set1, set2 in zip(s1, s2):
-                if not set2:
-                    continue
-                print('set1:', set1, 'set2:', set2)
-
-                for id1 in set1:
-                    if id1 in set2:
-                        
-                        score+=1
-
-            return score
-#the case for #1 data_set (1ids), #2 data_set (noid, multiple id's) 
+ 
+# ALL cases -------------------------------------------------------------------------------------------------------------------------------------------
 if args.score_all_cases:
 # Working function that prints clearly putput of scoring function for the 2 datasets -----------------------------------------------------------------------------------------------
 #(implement in argline as info score for 2 datasets  -> 41_7)
@@ -639,15 +631,40 @@ if args.score_all_cases:
                 arr.append(digit_set)
             else:
                 print(f"Key '{key}' does not match the pattern.")
-
+        print('Original ids')        
+        print(arr)
         return arr
 
 
 
 
-
-
     
+    def F_2_ppln(image_dict):
+            arr = []
+            p_id_set = set()
+            for ids, img in image_dict.items():
+                transformation = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                transformation = cv2.bitwise_not(transformation)
+                clahe = cv2.createCLAHE(clipLimit=4, tileGridSize=(16, 16))
+                transformation = clahe.apply(transformation)
+
+                transformation = cv2.GaussianBlur(transformation, (21, 21), 0)
+
+                transformation = cv2.adaptiveThreshold(transformation, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 37, 1)
+
+                _,transformation = cv2.threshold(transformation, 150, 255, cv2.THRESH_BINARY)  # Renamed 'transformation' to 'de
+                _,ids,_ = detector.detectMarkers(transformation)   
+                p_id_set = set()
+                
+                if ids is not None:
+                    for inner_arr in ids:
+                        for i in inner_arr:
+                            p_id_set.add(i)
+                        
+                arr.append(p_id_set)
+            print('F_2 predictions: ')    
+            print(arr) 
+            return arr
 
     def A_ppln_2(image_dict):
             arr = []
@@ -678,357 +695,131 @@ if args.score_all_cases:
         
 
     #small dataset 41 img - 1id 
-    directory = r'D:\AI research internship\opencv_scripts\data_set'
+    directory0 = r'D:\AI research internship\opencv_scripts\data_set'
     img_dict = load_images(directory) 
-    #small dataset 91 img  - 2 id
-    #directory2 = r'D:\AI research internship\opencv_scripts\2_id'
-
-
-
-
-
  
-    def calc_p_r(original_ids, predicted_ids):
-            #I did - > it predicted 
-            true_positive = 0
-            #I did -> it didn't predicted  FN
-            false_negative = 0
-            #I didn't do -> it predicted 
-            false_positive = 0
-            #I didn't do - >  it didn't predict 
-            true_negative = 0
-
-            #Q:  do i have to create set with empty values as for possible false positive/true negative cases 
-
-            for i in range(len(original_ids)):
-                if original_ids[i] == predicted_ids[i]:
-                    true_positive += 1
-                else:
-                    false_negative += 1
-
-            false_negative = len(original_ids) - true_positive
-
-            precision = 0
-            recall = 0
-
-            if true_positive + false_positive != 0:
-                precision = true_positive / (true_positive + false_positive)
-
-            if true_positive + false_negative != 0:
-                recall = true_positive / (true_positive + false_negative)
-
-            return true_positive, true_negative, false_negative, precision, recall
 
 
-    def calc_p_r_all(original_ids, predicted_ids):
-            #I did - > it predicted 
-            true_positive = 0
-            #I did -> it didn't predicted  FN
-            false_negative = 0
-            #I didn't do -> it predicted 
-            false_positive = 0
-            #I didn't do - >  it didn't predict 
-            true_negative = 0
 
-            #Q:  do i have to create set with empty values as for possible false positive/true negative cases 
-
-            for i in range(len(original_ids)):
-                # 1 - handle empty set's cases
-                if original_id[i] is set():
-                    # set() -> set() - true_negative
-                    if  original_id[i] == original_id[i]:
-                     true_negative+=1
-                    # set() -> {20} - false_positive
-                    if original_id[i] != original_id[i]:
-                        false_positive+=1
-                # 1 - handle sets with the values 
-                if original_ids[i] == predicted_ids[i]:
-                    # set{10}->{10}
-                    true_positive += 1
-                else:
-                    false_negative += 1
-
-            false_negative = len(original_ids) - true_positive
-
-            precision = 0
-            recall = 0
-
-            if true_positive + false_positive != 0:
-                precision = true_positive / (true_positive + false_positive)
-
-            if true_positive + false_negative != 0:
-                recall = true_positive / (true_positive + false_negative)
-
-            return true_positive, true_negative, false_negative, precision, recall
-
-
-    
-    
     def fixed_calc_p_r(original_ids, predicted_ids):
-            total_TP = 0
-            total_FP = 0
-            total_FN = 0
-            true_negative = 0
-            false_positive2 = 0
-            scores = 0
+        total_TP = 0
+        total_FP = 0
+        total_FN = 0
+        true_negative = 0
+        false_positive2 = 0
+        scores = 0
 
-            for set_o, set_p in zip(original_ids, predicted_ids):
-                if set_o != set():  # Multiple cases for TP, FN, FP
-                    intersection = set_o & set_p 
-                    true_positive = len(intersection)
-                    false_positive = len(set_p - set_o)
-                    false_negative = len(set_o) - true_positive - false_positive
-                    total_TP += true_positive
-                    total_FP += false_positive
-                    total_FN += false_negative
-                    scores += total_TP
-        
-                # Cases for the empty sets: TN (set() -> set()), FP#2 case (set() -> {30})
-                if set_o == set():
-                    if set_o == set_p:
-                     true_negative += 1
-                     scores +=1
-                    if set_o != set_p:
-                        false_positive2 += 1
+        for set_o, set_p in zip(original_ids, predicted_ids):
+            if set_o != set():  # Multiple cases for TP, FN, FP
+                intersection = set_o & set_p 
+                true_positive = len(intersection)
+                false_negative = len(set_p - set_o)
+                false_positive = len(set_o) - true_positive - false_negative
 
-            if true_positive + false_positive != 0:
-                precision = true_positive / (true_positive + false_positive+false_positive2)
-            else:
-                precision = 0
+                # Calculate score for each true positive
+                score = true_positive
+                scores += score
 
-            if true_positive + false_negative != 0:
-                recall = true_positive / (true_positive + false_negative)
-            else:
-                recall = 0
+                total_TP += true_positive
+                total_FP += false_positive
+                total_FN += false_negative
 
-            return total_TP, total_FP, total_FN, true_negative, false_positive2,precision,recall, scores
+            # Cases for the empty sets: TN (set() -> set()), FP#2 case (set() -> {30})
+            if set_o == set():
+                if set_o == set_p:
+                    true_negative += 1
+                    scores += 1
+                if set_o != set_p:
+                    false_positive2 += 1
 
 
-    def score3(s1, s2):
-                score = 0
-                for set1, set2 in zip(s1, s2):
-                    if not set2:
-                        continue
-                    
+        total = len(original_ids)
+        return total_TP, total_FP, total_FN, true_negative, false_positive2, scores,total
+    
+    def info(total_TP, total_FP, total_FN, true_negative, false_positive2, s, total):
+        precision = 0
+        recall = 0
 
-                    for id1 in set1:
-                        if id1 in set2:
-                            
-                            score+=1
+        if total_TP + total_FP + false_positive2 != 0:
+            precision = total_TP / (total_TP + total_FP + false_positive2)
+        else:
+            precision = 0
 
-                return score
+        if total_TP + total_FN != 0:
+            recall = total_TP / (total_TP + total_FN)
+        else:
+            recall = 0
 
+        print(f'Predicted: Score:{(s/total)*100}% | TP:{total_TP}, FN:{total_FP}, TN:{true_negative}, FP1:{total_FN}, FP2:{false_positive2} | precision:{precision}, recall:{recall}')
+        print(f'Out of {total} images, {total_TP} were predicted accurately')
+
+  #Predicted: Score:11 | TP:11, FN:4, TN:0, FP-1:135, FP-2:0 | precision:0, recall:0.0
+ 
+    def pplns(ppln):
+        batch_size = 150
+        for batch in load_images_in_batches(directory, batch_size):
+            original_ids = original_id_2(batch)
+            #print(original_ids)
+            predicted_ids = ppln(batch)
+            
+            #new_arr_predicted_ids = [int(x[0, 0]) if x is not None else None for x in predicted_ids]
+            #print(predicted_ids)
+            total_TP, total_FP, total_FN, true_negative, false_positive2, scores, total = fixed_calc_p_r(original_ids,predicted_ids)
+            info(total_TP, total_FP, total_FN, true_negative, false_positive2, scores,total)
                    
 #Dataset
 
     orig_set = original_id_2(img_dict)
 
-    predict_set = A_ppln_2(img_dict)
+    predict_set = F_2_ppln(img_dict)
 
-    score = score3(orig_set, predict_set)
+    
+    total_TP, total_FP, total_FN, true_negative, false_positive2, scores, total = fixed_calc_p_r(orig_set, predict_set)
 
-
-    def info(original, predicted):
-
-     
-        total = len(original)
-        score = score3(original, predicted)
-        ratio = score/total*100
-        true_positive, true_negative, false_negative, precision, recall =  calc_p_r(original, predicted)
-        print()
-        print('---------------------------------------------------')
-        print(f"Image processing pipeline scored at {int(ratio)} %")
-        print(f"Out of {total} images {score} were predicted")
-        print('Score:', ratio, '%')
-        print('precision:', precision, '%')
-        print('recall:', recall, '%')
-        print('true_positive total:', true_positive)
-        print('false_negative total:', false_negative)
-        print('true_negative total:', true_negative)
-        print('---------------------------------------------------')
-        print()
-
+    
+       
 
     a_orig_set = [set(),{40,30},{5},{40,30},{6},{20,30},set()]
 
     a_predicted_set = [set(),{17},{5},{40,30},set(),{20},{5}]
 
-    directory = r'D:\AI research internship\opencv_scripts\data_set'
+    total_TP_a, total_FP_a, total_FN_a, true_negative_a, false_positive2_a, scores_a, total = fixed_calc_p_r(a_orig_set, a_predicted_set)
 
+    directory1 = r'D:\AI research internship\opencv_scripts\data_set'
+    
+    directory = r'D:\AI research internship\opencv_scripts\n_l_r_angl'
 
+    #UNcomment for more pplns & datasets 
+    
+    '''
 
     print()
     print('---------------------------------------------------')
     print('Info for the 7 img  dataset (multiple cases: no ids, 1 id, 2+ ids)')
     print('---------------------------------------------------')
-    info(a_orig_set, a_predicted_set)
-
+    info(total_TP_a, total_FP_a, total_FN_a, true_negative_a, false_positive2_a, scores_a )
+    
 
     print('---------------------------------------------------')
-    print('Info for the 41 img dataset (1 case: 1 id)')
+    print('F-2 ppln | Info for the 41 img dataset (1 case: 1 id)')
     print('---------------------------------------------------')
     print()
-    info(orig_set, predict_set)
+    info(total_TP, total_FP, total_FN, true_negative, false_positive2, scores)
+'''
+    print('---------------------------------------------------')
+    print('F-2 ppln | Info for the 3K img dataset (1 case: 1 id - condition: left/rigth )')
+    print('---------------------------------------------------')
+    pplns(F_2_ppln)
+
+'''
+
+    print('---------------------------------------------------')
+    print('A ppln | Info for the 3K img dataset (1 case: 1 id - condition: left/rigth )')
+    print('---------------------------------------------------')
+    pplns(A_ppln_2)
+'''
 
 #TEST  -----------------------------------------------------------------------------------------------
-
-
-
-#Test function calc precision and score 
-
-
-# true_positive - I did - > it predicted 
-#false_negative - I did -> it didn't predicted  FN
-# false_positive  - I didn't do -> it predicted 
-# true_negative  - #I didn't do - >  it didn't predict 
-         
-
-
-        
-
-true_positive = 0
-true_negative = 0
-false_negative = 0
-false_positive = 0
-score = 0
-
-#True positive 
-#works for 1 case, but won't work with more values added ?
-#
-original_ids=[{30,20,40}, set(),set()]
-predicted_ids=[{30,119}, {30},set()]
-
-
-
-#original_ids=[{30,20,40}, {30,20},set(),{30},set()]
-#predicted_ids=[{30,119}, {30}, set(),{30},{30}]
-
-total_TP = 0
-total_FP = 0
-total_FN = 0
-false_positive2=0
-'''
-Cases to work with:
-1) Multiple (inner) cases: TP({30}->{30}) FN ({10}->set()) FP#1 ({40}->{119}, FP#2 (set()->{30}))
-2) Empty cases : TN(set()->set())
-'''
-for set_o, set_p in zip(original_ids,predicted_ids):
- if set_o!=set():   
-  #if len(set_o)>1:  #multiple cases for tp fn fp 
-    intersection = set_o & set_p 
-    true_positive=len(intersection)
-    false_positive= len(set_p-set_o)
-    false_negative= len(set_o) - true_positive - false_positive
-    total_TP +=true_positive
-    total_FP +=false_positive
-    total_FN +=false_negative 
-  
-  # cases for the empty sets cases: TN (set()-> set()), FP#2 case (set() -> {30})
- if set_o==set():
-    if set_o==set_p:
-        true_negative+=1
-    if set_o!=set_p:
-        false_positive2+=1
-    
-  
-  
-      
-        def fixed_calc_p_r(original_ids, predicted_ids):
-            total_TP = 0
-            total_FP = 0
-            total_FN = 0
-            true_negative = 0
-            false_positive2 = 0
-            scores = 0
-
-            for set_o, set_p in zip(original_ids, predicted_ids):
-                if set_o != set():  # Multiple cases for TP, FN, FP
-                    intersection = set_o & set_p 
-                    true_positive = len(intersection)
-                    false_positive = len(set_p - set_o)
-                    false_negative = len(set_o) - true_positive - false_positive
-                    total_TP += true_positive
-                    total_FP += false_positive
-                    total_FN += false_negative
-                    scores += total_TP
-        
-                # Cases for the empty sets: TN (set() -> set()), FP#2 case (set() -> {30})
-                if set_o == set():
-                    if set_o == set_p:
-                     true_negative += 1
-                     scores +=1
-                    if set_o != set_p:
-                        false_positive2 += 1
-
-            if true_positive + false_positive != 0:
-                precision = true_positive / (true_positive + false_positive+false_positive2)
-            else:
-                precision = 0
-
-            if true_positive + false_negative != 0:
-                recall = true_positive / (true_positive + false_negative)
-            else:
-                recall = 0
-
-            return total_TP, total_FP, total_FN, true_negative, false_positive2,precision,recall, scores
-
-
-     
-total_TP, total_FP, total_FN, true_negative, false_positive2, p,r, s = fixed_calc_p_r(original_ids, predicted_ids)
-
-
-
-
-print(f'Predicted: Score:{s} | TP:{total_TP}, FN:{total_FP}, TN:{true_negative}, FP-1:{total_FN}, FP-2:{false_positive2} | precision:{p}, recall:{r}')
-print('Expected: Score:  | TP:1, FN:1, TN:1, FP-1:1, FP-2:1 | precision:0.3, recall:0.5',)
-print('Scores',s)
-
-'''
-
-
-
-print('NEW')
-#original_ids=[{30,10,20}, set(),set(),{10}]
-#predicted_ids=[{30},set(),{10},{19}]
-original_ids=[{30,10,20}]
-predicted_ids=[{30}]
-
-for set_o, set_p in zip(original_ids, predicted_ids):
-    intersection = set_o & set_p  # Intersection of sets to find common elements
-    print(intersection)
-    if intersection in set_o:
-        print('True positive:')
-        true_positive += 1
-        if len(set_o) > 0:
-            score += 1 / len(set_o)
-    elif intersection:
-        print('False negative:', set_o - intersection)
-        false_negative += len(set_o - intersection)
-        false_positive += len(set_p - intersection)
-    else:
-        print('False positive:', set_p)
-        false_positive += len(set_p)
-
-  
-
-
-print('true positive' , true_positive)
-print('false_negative' , false_negative)
-print('true_negative: ', true_negative)
-print('false_positive: ', false_positive)
-
-
-print('score', score)
-
-original_ids=[{30,10,20}, set(),set(),{10}]
-predicted_ids=[{30},set(),{10},{19}]
-print('Expected: 30-30, 10-empty, 20-empty, set()-set(), set()-10, 10-19')
-print(f'Calculated: TP: {true_positive}: FN: {false_negative}, TN: {true_negative} ,  FP: {false_positive}')
-print('Expected: TP: 1, FN: 2, TN: 1, FP:2')
-
-
-
-#Calcuates case {10}-{19} as false negative instead of false psoitive fix
 
 '''
 
